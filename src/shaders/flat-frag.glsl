@@ -49,6 +49,8 @@ void main() {
   // out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.0, 1.0);
   vec2 q = vec2(fbm(fs_Pos - vec2(0.2)), fbm(fs_Pos + vec2(25.2, -22.8)));
   out_Col = vec4(vec3(clamp(2.0 * fbm(q) - 0.3, 0.0, 1.0)), 1.0);
+
+  // TODO: Toggle this with a checkbox
   if (out_Col.x < 0.57) {
     out_Col = vec4(0.0, 0.0, 1.0, 1.0);
   }

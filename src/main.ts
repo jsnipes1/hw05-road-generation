@@ -18,6 +18,7 @@ const controls = {
   expansionDepth: 4,
   angle: 135.0,
   showTerrainMap: true,
+  simpleTerrain: false,
   showPopulationDensity: true
 };
 
@@ -33,6 +34,7 @@ let currAxiom : string = 'FF[+F][-F][+F]X';
 let currDepth : number = 4;
 let currAngle : number = 135.0;
 let currTerrain : boolean = true;
+let currSimple : boolean = false;
 let currDensity : boolean = true;
 
 function loadScene() {
@@ -148,6 +150,7 @@ function main() {
   gui.add(controls, 'expansionDepth', 0, 5).step(1);
   gui.add(controls, 'angle', 20.0, 150.0).step(0.5);
   gui.add(controls, 'showTerrainMap');
+  gui.add(controls, 'simpleTerrain');
   gui.add(controls, 'showPopulationDensity');
 
   // get canvas and webgl context
@@ -196,11 +199,12 @@ function main() {
   // This function will be called every frame
   function tick() {
     if (controls.axiom != currAxiom || controls.expansionDepth != currDepth || controls.angle != currAngle
-        || controls.showPopulationDensity != currDensity || controls.showTerrainMap != currTerrain) {
+        || controls.showPopulationDensity != currDensity || controls.simpleTerrain != currSimple || controls.showTerrainMap != currTerrain) {
       currAxiom = controls.axiom;
       currDepth = controls.expansionDepth;
       currAngle = controls.angle;
       currDensity = controls.showPopulationDensity;
+      currSimple = controls.simpleTerrain;
       currTerrain = controls.showTerrainMap;
 
       // If both shaders are enabled, blend the outputs for an overlay effect
@@ -226,6 +230,7 @@ function main() {
     // Turn background shaders on and off as appropriate
     renderer.clear();
     if (currTerrain) {
+      // TODO: Pass argument for simpleTerrain toggle
       renderer.render(camera, flat, [screenQuad]);
     }
     if (currDensity) {
