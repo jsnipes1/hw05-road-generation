@@ -16,11 +16,14 @@ import LSystem from './LSystem';
 const controls = {
   axiom: 'FF[+F][-F][+F]X',
   expansionDepth: 4,
-  angle: 135.0
+  angle: 135.0,
+  showTerrainMap: true,
+  showPopulationDensity: true
 };
 
 let square: Square;
 let screenQuad: ScreenQuad;
+let densityMap: ScreenQuad;
 let cyl: Mesh;
 let bean: Mesh;
 let tree: LSystem;
@@ -29,16 +32,18 @@ let time: number = 0.0;
 let currAxiom : string = 'FF[+F][-F][+F]X';
 let currDepth : number = 4;
 let currAngle : number = 135.0;
+let currTerrain : boolean = true;
+let currDensity : boolean = true;
 
 function loadScene() {
-  // square = new Square();
-  // square.create();
+  square = new Square();
+  square.create();
 
   screenQuad = new ScreenQuad();
   screenQuad.create();
 
-  square = new Square();
-  square.create();
+  densityMap = new ScreenQuad();
+  densityMap.create();
 
   tree = new LSystem(controls.axiom, controls.expansionDepth, controls.angle);
   let branches : mat4[] = tree.drawBranch();
@@ -142,6 +147,8 @@ function main() {
   gui.add(controls, 'axiom');
   gui.add(controls, 'expansionDepth', 0, 5).step(1);
   gui.add(controls, 'angle', 20.0, 150.0).step(0.5);
+  gui.add(controls, 'showTerrainMap');
+  gui.add(controls, 'showPopulationDensity');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -160,9 +167,16 @@ function main() {
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.2, 0.2, 0.2, 1);
-  // gl.enable(gl.BLEND);
-  // gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
-  gl.enable(gl.DEPTH_TEST);
+
+  // If we want to show both the terrain and density maps, turn on interpolative blending
+  // otherwise, use depth sorting
+  if (currTerrain && currDensity) {
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // Interpolative blending
+  }
+  else {
+    gl.enable(gl.DEPTH_TEST);
+  }
 
   const instancedShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/instanced-vert.glsl')),
@@ -174,21 +188,50 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
 
+  const density = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/density-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/density-frag.glsl')),
+  ]);
+
   // This function will be called every frame
   function tick() {
-    if (controls.axiom != currAxiom || controls.expansionDepth != currDepth || controls.angle != currAngle) {
+    if (controls.axiom != currAxiom || controls.expansionDepth != currDepth || controls.angle != currAngle
+        || controls.showPopulationDensity != currDensity || controls.showTerrainMap != currTerrain) {
       currAxiom = controls.axiom;
       currDepth = controls.expansionDepth;
       currAngle = controls.angle;
+      currDensity = controls.showPopulationDensity;
+      currTerrain = controls.showTerrainMap;
+
+      // If both shaders are enabled, blend the outputs for an overlay effect
+      if (currTerrain && currDensity) {
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // Interpolative blending
+      }
+      else {
+        gl.disable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+      }
+
       loadScene();
     }
+
     camera.update();
     stats.begin();
     instancedShader.setTime(time);
     flat.setTime(time++);
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+
+    // Turn background shaders on and off as appropriate
     renderer.clear();
-    renderer.render(camera, flat, [screenQuad]);
+    if (currTerrain) {
+      renderer.render(camera, flat, [screenQuad]);
+    }
+    if (currDensity) {
+      renderer.render(camera, density, [densityMap]);
+    }
+
     renderer.render(camera, instancedShader, [
       square
     ]);
