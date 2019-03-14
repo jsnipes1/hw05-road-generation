@@ -37,7 +37,7 @@ float fbm(vec2 q) {
   float freq = 1.0;
   float amp = 1.0;
 
-  for (int i = 0; i < 5; ++i) {
+  for (int i = 0; i < 3; ++i) {
     freq *= freqScale;
     amp *= invScale;
     acc += noise(q * freq) * amp;
@@ -47,5 +47,12 @@ float fbm(vec2 q) {
 
 void main() {
   // out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.0, 1.0);
-  out_Col = vec4(vec3(fbm(fs_Pos)), 1.0);
+  vec2 q = vec2(fbm(fs_Pos - vec2(0.2)), fbm(fs_Pos + vec2(25.2, -22.8)));
+  out_Col = vec4(vec3(clamp(2.0 * fbm(q) - 0.3, 0.0, 1.0)), 1.0);
+  if (out_Col.x < 0.57) {
+    out_Col = vec4(0.0, 0.0, 1.0, 1.0);
+  }
+  else {
+    out_Col = vec4(0.0, 1.0, 0.0, 1.0);
+  }
 }
