@@ -8,6 +8,8 @@ uniform float u_Time;
 in vec2 fs_Pos;
 out vec4 out_Col;
 
+// TERRAIN MAP
+
 float hash2D(vec2 x) {
 	float i = dot(x, vec2(123.4031, 46.5244876));
 	return fract(sin(i * 7.13) * 268573.103291);
