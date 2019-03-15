@@ -54,5 +54,5 @@ void main() {
   // vec2 q = vec2(perlin(fs_Pos - vec2(0.2)), perlin(fs_Pos + vec2(25.2, -22.8)));
   // out_Col = vec4(vec3(clamp(2.0 * perlin(q) - 0.3, 0.0, 1.0)), 1.0);
   // out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.0, 0.4);
-  out_Col = vec4(vec3(perlin(fs_Pos)), 1.0);
+  out_Col = vec4(vec3(perlin(fs_Pos)), 0.85);
 }

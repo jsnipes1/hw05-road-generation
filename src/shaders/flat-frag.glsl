@@ -4,6 +4,7 @@ precision highp float;
 uniform vec3 u_Eye, u_Ref, u_Up;
 uniform vec2 u_Dimensions;
 uniform float u_Time;
+uniform int u_Terrain;
 
 in vec2 fs_Pos;
 out vec4 out_Col;
@@ -50,13 +51,15 @@ float fbm(vec2 q) {
 void main() {
   // out_Col = vec4(0.5 * (fs_Pos + vec2(1.0)), 0.0, 1.0);
   vec2 q = vec2(fbm(fs_Pos - vec2(0.2)), fbm(fs_Pos + vec2(25.2, -22.8)));
-  out_Col = vec4(vec3(clamp(2.0 * fbm(q) - 0.3, 0.0, 1.0)), 1.0);
+  vec3 n = vec3(clamp(2.0 * fbm(q) - 0.3, 0.0, 1.0));
 
-  // TODO: Toggle this with a checkbox
-  if (out_Col.x < 0.57) {
-    out_Col = vec4(0.0, 0.0, 1.0, 1.0);
-  }
-  else {
-    out_Col = vec4(0.0, 1.0, 0.0, 1.0);
+  out_Col.x = 0.0;
+  out_Col.y = mix(0.0, 1.0, n.y);
+  out_Col.z = mix(1.0, 0.0, n.z);
+  out_Col.w = 1.0;
+  // out_Col = vec4(n.x, n.y, n.z, 1.0);
+
+  if (u_Terrain == 1) {
+    out_Col = (out_Col.y < 0.57) ? (vec4(0.0, 0.0, 1.0, 1.0)) : (vec4(0.0, 1.0, 0.0, 1.0));
   }
 }

@@ -230,16 +230,15 @@ function main() {
     // Turn background shaders on and off as appropriate
     renderer.clear();
     if (currTerrain) {
-      // TODO: Pass argument for simpleTerrain toggle
-      renderer.render(camera, flat, [screenQuad]);
+      renderer.render(camera, flat, [screenQuad], currSimple);
     }
     if (currDensity) {
-      renderer.render(camera, density, [densityMap]);
+      renderer.render(camera, density, [densityMap], currSimple);
     }
 
     renderer.render(camera, instancedShader, [
       square
-    ]);
+    ], currSimple);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
