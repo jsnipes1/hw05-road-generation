@@ -47,7 +47,7 @@ function loadScene() {
   densityMap = new ScreenQuad();
   densityMap.create();
 
-  tree = new LSystem(controls.axiom, controls.expansionDepth, controls.angle);
+  tree = new LSystem(controls.expansionDepth, controls.angle, 0);
   let branches : mat4[] = tree.drawBranch();
   let leaves : mat4[] = tree.drawLeaf();
 
