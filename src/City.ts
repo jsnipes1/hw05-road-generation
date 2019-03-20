@@ -79,7 +79,7 @@ class Road {
     // Vector in the screen plane that is normal to the road; negate for other direction
     inPlaneNormal() : vec2 {
         let roadVec3 : vec3 = vec3.fromValues(this.roadVec[0], this.roadVec[1], 0.0);
-        let xProd : vec3;
+        let xProd : vec3 = vec3.create();
         vec3.cross(xProd, this.outOfScreen, roadVec3);
         return vec2.fromValues(xProd[0], xProd[1]);
     }

@@ -45,10 +45,40 @@ export default class Turtle {
             this.rasterRoads();
         }
 
+        // Each road will attempt to branch
+        let branchThreshold : number = 0.6;
+        for (let i = -1; i <= 1; i += 0.5) {
+            let tempOrient : number = this.orient + i * 30.0;
+
+            let tempPos : vec2 = vec2.create();
+            vec2.add(tempPos, vec2.clone(this.position), vec2.fromValues(this.segmentLength * Math.cos(tempOrient), this.segmentLength * Math.sin(tempOrient)));
+            
+            // Found a path to a higher density area -> branch
+            let m : mat4 = mat4.create();
+            let q : quat = quat.create();
+            if (this.getPopulationDensity(tempPos) > branchThreshold && !this.isWater(tempPos)) {
+                this.saveState();
+                this.position = tempPos;
+                this.orient = tempOrient;
+
+                quat.fromEuler(q, 0.0, 0.0, tempOrient);
+                mat4.fromRotationTranslation(m, q, vec3.fromValues(tempPos[0], tempPos[1], 0.0));
+            }
+            // Not high enough density -> Done with this turtle; pop stack
+            else {
+                this.restoreState();
+                let m : mat4 = mat4.create();
+                let q : quat = quat.create();
+                quat.fromEuler(q, 0.0, 0.0, this.orient.valueOf());
+                mat4.fromRotationTranslation(m, q, vec3.fromValues(this.position[0].valueOf(), this.position[1].valueOf(), 0.0));
+            }
+            return m;
+        }
+
         // Read surrounding area from population density map
         // Calculate gradient between each wrt current pixel
             // If 2+ pixels have similar gradient values, branch
-            // Push state to stack and recursively call this function(?)
+            // Push state to stack and..?
         // Move in direction of maximum gradient value
         // Update position and orient fields (not sure how to just move one pixel?)
 
@@ -85,21 +115,17 @@ export default class Turtle {
         return m;
     }
 
-    saveState() : mat4 {
+    saveState() : void {
         this.recDepth++;
         this.stack.push(new Turtle(this.type.valueOf(), vec2.clone(this.position), this.orient.valueOf()));
-        let i : mat4 = mat4.create();
-        return i;
     }
 
-    restoreState() : mat4 {
+    restoreState() : void {
         this.recDepth--;
         let temp : Turtle = this.stack.pop();
         this.position = temp.position;
         this.orient = temp.orient;
         this.type = temp.type;
-        let i : mat4 = mat4.create();
-        return i;
     }
 
     translateTurtle(xScale: number, yScale: number) : void {
@@ -130,26 +156,26 @@ export default class Turtle {
       // Source: https://flafla2.github.io/2014/08/09/perlinnoise.html
     getPopulationDensity(q: vec2) : number {
       let grads : vec2[] = [vec2.fromValues(1, 1), vec2.fromValues(-1, 1), vec2.fromValues(1, -1), vec2.fromValues(-1, -1)];
-      let p : vec2;
+      let p : vec2 = vec2.create();
       vec2.scale(p, q, 5.0);
       let inCell : vec2 = this.vecFract(p);
     
-      let x0y0 : vec2;
+      let x0y0 : vec2 = vec2.create();
       vec2.floor(x0y0, vec2.clone(p));
-      let x1y0 : vec2; 
+      let x1y0 : vec2 = vec2.create(); 
       vec2.add(x1y0, vec2.clone(x0y0), vec2.fromValues(1.0, 0.0));
-      let x0y1 : vec2;
+      let x0y1 : vec2 = vec2.create();
       vec2.add(x0y1, vec2.clone(x0y0), vec2.fromValues(0.0, 1.0));
-      let x1y1 : vec2; 
+      let x1y1 : vec2 = vec2.create(); 
       vec2.add(x1y1, vec2.clone(x0y0), vec2.fromValues(1.0, 1.0));
     
-      let sw2p : vec2;
+      let sw2p : vec2 = vec2.create();
       vec2.subtract(sw2p, vec2.clone(p), vec2.clone(x0y0));
-      let se2p : vec2;
+      let se2p : vec2 = vec2.create();
       vec2.subtract(se2p, vec2.clone(p), vec2.clone(x1y0));
-      let nw2p : vec2;
+      let nw2p : vec2 = vec2.create();
       vec2.subtract(nw2p, vec2.clone(p), vec2.clone(x0y1));
-      let ne2p : vec2; 
+      let ne2p : vec2 = vec2.create();
       vec2.subtract(ne2p, vec2.clone(p), vec2.clone(x1y1));
     
       let grad00 : vec2 = grads[Math.floor(this.hash2D(x0y0) * 4.0)];
@@ -169,20 +195,20 @@ export default class Turtle {
 
     // 2D noise
     noise(p: vec2) : number {
-        let corner : vec2;
+        let corner : vec2 = vec2.create();
         vec2.floor(corner, p);
         let inCell : vec2 = this.vecFract(p);
 
-        let brCorner : vec2;
+        let brCorner : vec2 = vec2.create();
         vec2.add(brCorner, vec2.clone(corner), vec2.fromValues(1.0, 0.0));
 
         let bL : number = this.hash2D(corner);
         let bR : number = this.hash2D(brCorner);
         let bottom : number = this.mix(bL, bR, inCell[0]);
 
-        let tCorner : vec2;
+        let tCorner : vec2 = vec2.create();
         vec2.add(tCorner, vec2.clone(corner), vec2.fromValues(0.0, 1.0));
-        let trCorner : vec2;
+        let trCorner : vec2 = vec2.create();
         vec2.add(trCorner, tCorner, vec2.fromValues(1.0, 0.0));
 
         let tL : number = this.hash2D(tCorner);
@@ -202,7 +228,7 @@ export default class Turtle {
         for (let i = 0; i < 3; ++i) {
             freq *= freqScale;
             amp *= invScale;
-            let qScale : vec2;
+            let qScale : vec2 = vec2.create();
             vec2.scale(qScale, q, freq);
             acc += this.noise(qScale) * amp;
         }
@@ -211,10 +237,10 @@ export default class Turtle {
 
     // Terrain height map computed using multi-octave 2D FBM
     getTerrain(q: vec2) : number {
-        let fbm1 : vec2;
+        let fbm1 : vec2 = vec2.create();
         vec2.subtract(fbm1, vec2.clone(q), vec2.fromValues(0.2, 0.2));
 
-        let fbm2 : vec2;
+        let fbm2 : vec2 = vec2.create();
         vec2.add(fbm2, vec2.clone(q), vec2.fromValues(25.2, -22.8));
 
         let p : vec2 = vec2.fromValues(this.fbm(fbm1), this.fbm(fbm2));
