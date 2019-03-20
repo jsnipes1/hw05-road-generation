@@ -23,15 +23,14 @@ export default class City {
     drawHighways() : mat4[] {
         let transfs : mat4[] = [];
         // Can we just hardcode how many times we want the roads to branch?
-        for (let i = 0; i < 20; ++i) {
-            let start : vec2 = this.currState.position;
-            this.intersections.push(new Intersection(start));
+        let start : vec2 = this.currState.position;
+        this.intersections.push(new Intersection(start));
 
-            let branch : mat4 = this.currState.branchingRoads();
-            transfs.push(branch);
-
+        let branch : mat4[] = this.currState.branchingRoads();
+        for (let j = 0; j < branch.length; ++j) {
+            transfs.push(branch[j]);
             let transl : vec3 = vec3.create();
-            mat4.getTranslation(transl, branch); 
+            mat4.getTranslation(transl, branch[j]); 
             let end : vec2 = vec2.fromValues(transl[0], transl[1]);
             this.roads.push(new Road(start, end));
         }

@@ -22,6 +22,8 @@ let square: Square;
 let screenQuad: ScreenQuad;
 let densityMap: ScreenQuad;
 let city: City;
+let highwayGeom: Square;
+let roadGeom: Square;
 let time: number = 0.0;
 
 let currTerrain : boolean = true;
@@ -42,6 +44,12 @@ function loadScene() {
   let highways : mat4[] = city.drawHighways();
   let roads : mat4[] = city.drawNeighborhoods();
 
+  highwayGeom = new Square();
+  highwayGeom.create();
+
+  roadGeom = new Square();
+  roadGeom.create();
+
   let bOffsetArr = [];
   let bRotArr = [];
   let bScaleArr = [];
@@ -51,6 +59,7 @@ function loadScene() {
 
     let t : vec3 = vec3.create(); 
     mat4.getTranslation(t, curr);
+    t[2] = 0.0;
     vec3.scale(t, t, 0.008);
   
     bOffsetArr.push(t[0]);
@@ -70,9 +79,9 @@ function loadScene() {
     bScaleArr.push(s[1]);
     bScaleArr.push(s[2]);
 
-    bColorArr.push(1.0);
-    bColorArr.push(1.0);
-    bColorArr.push(1.0);
+    bColorArr.push(0.1);
+    bColorArr.push(0.1);
+    bColorArr.push(0.1);
     bColorArr.push(1.0); // Alpha
   }
 
@@ -115,8 +124,8 @@ function loadScene() {
   let bRots : Float32Array = new Float32Array(bRotArr);
   let bScales : Float32Array = new Float32Array(bScaleArr);
   let bColors : Float32Array = new Float32Array(bColorArr);
-  // cyl.setInstanceVBOs(bOffsets, bRots, bScales, bColors);
-  // cyl.setNumInstances(branches.length);
+  highwayGeom.setInstanceVBOs(bOffsets, bRots, bScales, bColors);
+  highwayGeom.setNumInstances(highways.length);
 
   let sOffsets : Float32Array = new Float32Array(sOffsetArr);
   let sRots : Float32Array = new Float32Array(sRotArr);
@@ -221,9 +230,7 @@ function main() {
       renderer.render(camera, density, [densityMap], currSimple);
     }
 
-    renderer.render(camera, instancedShader, [
-      square
-    ], currSimple);
+    renderer.render(camera, instancedShader, [highwayGeom], currSimple);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

@@ -39,7 +39,7 @@ export default class Turtle {
     }
 
     // Move in direction of greatest population density
-    branchingRoads() : mat4 {
+    branchingRoads() : mat4[] {
         // Just in case something goes *very* wrong
         if (this.type == 1) {
             this.rasterRoads();
@@ -47,6 +47,7 @@ export default class Turtle {
 
         // Each road will attempt to branch
         let branchThreshold : number = 0.6;
+        let mArr : mat4[] = [];
         for (let i = -1; i <= 1; i += 0.5) {
             let tempOrient : number = this.orient + i * 30.0;
 
@@ -66,24 +67,17 @@ export default class Turtle {
             }
             // Not high enough density -> Done with this turtle; pop stack
             else {
-                this.restoreState();
-                let m : mat4 = mat4.create();
+                if (this.stack.length > 0) {
+                    this.restoreState();
+                }
                 let q : quat = quat.create();
                 quat.fromEuler(q, 0.0, 0.0, this.orient.valueOf());
                 mat4.fromRotationTranslation(m, q, vec3.fromValues(this.position[0].valueOf(), this.position[1].valueOf(), 0.0));
             }
-            return m;
+            mArr.push(m);
         }
 
-        // Read surrounding area from population density map
-        // Calculate gradient between each wrt current pixel
-            // If 2+ pixels have similar gradient values, branch
-            // Push state to stack and..?
-        // Move in direction of maximum gradient value
-        // Update position and orient fields (not sure how to just move one pixel?)
-
-        let m : mat4 = mat4.create();
-        return m;
+        return mArr;
     }
 
     // Draw raster style roads
