@@ -7,6 +7,7 @@ import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import {readTextFile} from './globals';
 import Mesh from './geometry/Mesh';
 import City from './City';
 
@@ -22,8 +23,8 @@ let square: Square;
 let screenQuad: ScreenQuad;
 let densityMap: ScreenQuad;
 let city: City;
-let highwayGeom: Square;
-let roadGeom: Square;
+let highwayGeom: Mesh;
+let roadGeom: Mesh;
 let time: number = 0.0;
 
 let currTerrain : boolean = true;
@@ -40,14 +41,15 @@ function loadScene() {
   densityMap = new ScreenQuad();
   densityMap.create();
 
-  city = new City(4);
+  city = new City();
   let highways : mat4[] = city.drawHighways();
   let roads : mat4[] = city.drawNeighborhoods();
 
-  highwayGeom = new Square();
+  let obj : string = readTextFile('../resources/road.obj');
+  highwayGeom = new Mesh(obj, vec3.fromValues(0.0, 0.0, 0.0));
   highwayGeom.create();
 
-  roadGeom = new Square();
+  roadGeom = new Mesh(obj, vec3.fromValues(0.0, 0.0, 0.0));
   roadGeom.create();
 
   let bOffsetArr = [];
@@ -60,7 +62,7 @@ function loadScene() {
     let t : vec3 = vec3.create(); 
     mat4.getTranslation(t, curr);
     t[2] = 0.0;
-    vec3.scale(t, t, 0.008);
+    vec3.scale(t, t, 0.5);
   
     bOffsetArr.push(t[0]);
     bOffsetArr.push(t[1]);
@@ -131,8 +133,8 @@ function loadScene() {
   let sRots : Float32Array = new Float32Array(sRotArr);
   let sScales : Float32Array = new Float32Array(sScaleArr);
   let sColors : Float32Array = new Float32Array(sColorArr);
-  // bean.setInstanceVBOs(sOffsets, sRots, sScales, sColors);
-  // bean.setNumInstances(leaves.length);
+  // roadGeom.setInstanceVBOs(sOffsets, sRots, sScales, sColors);
+  // roadGeom.setNumInstances(roads.length);
 }
 
 function main() {

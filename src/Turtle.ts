@@ -6,7 +6,7 @@ export default class Turtle {
     type: number;
     recDepth: number;
     stack: Turtle[];
-    segmentLength: number = 0.05;
+    segmentLength: number = 0.005;
     worldOrients : number[] = [0, 90, 180, 270];
 
     // Pass position and orientation as optional parameters so we can

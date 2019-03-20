@@ -3,14 +3,12 @@ import Turtle from './Turtle';
 
 export default class City {
     currState: Turtle;
-    depthLimit: number;
     drawRules: Map<number, any>;
     roads: Road[];
     intersections: Intersection[];
 
-    constructor(lim: number) {
+    constructor() {
         this.currState = new Turtle(0);
-        this.depthLimit = lim;
 
         this.drawRules = new Map();
         this.drawRules.set(0, this.currState.branchingRoads.bind(this.currState));
@@ -22,7 +20,6 @@ export default class City {
 
     drawHighways() : mat4[] {
         let transfs : mat4[] = [];
-        // Can we just hardcode how many times we want the roads to branch?
         let start : vec2 = this.currState.position;
         this.intersections.push(new Intersection(start));
 

@@ -9,6 +9,9 @@ class Mesh extends Drawable {
   normals: Float32Array;
   colors: Float32Array;
   uvs: Float32Array;
+  offsets: Float32Array;
+  rot: Float32Array;
+  scale: Float32Array;
   center: vec4;
 
   objString: string;
@@ -45,7 +48,7 @@ class Mesh extends Drawable {
     // white vert color for now
     this.colors = new Float32Array(posTemp.length);
     for (var i = 0; i < posTemp.length; ++i){
-      this.colors[i] = 1.0;
+        this.colors[i] = 1.0;
     }
 
     this.indices = new Uint32Array(idxTemp);
@@ -58,6 +61,9 @@ class Mesh extends Drawable {
     this.generateNor();
     this.generateUV();
     this.generateCol();
+    this.generateTranslate();
+    this.generateRot();
+    this.generateScale();
 
     this.count = this.indices.length;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
@@ -77,6 +83,25 @@ class Mesh extends Drawable {
 
     console.log(`Created Mesh from OBJ`);
     this.objString = ""; // hacky clear
+  }
+
+  setInstanceVBOs(offsets: Float32Array, rot: Float32Array, scale: Float32Array, colors: Float32Array) {
+    this.colors = colors;
+    this.offsets = offsets;
+    this.rot = rot;
+    this.scale = scale;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufCol);
+    gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufTranslate);
+    gl.bufferData(gl.ARRAY_BUFFER, this.offsets, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRot);
+    gl.bufferData(gl.ARRAY_BUFFER, this.rot, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufScale);
+    gl.bufferData(gl.ARRAY_BUFFER, this.scale, gl.STATIC_DRAW);
   }
 };
 
