@@ -20,6 +20,7 @@ float fade(float t) {
 }
 
 // 2D Perlin noise
+  // Source: https://flafla2.github.io/2014/08/09/perlinnoise.html
 float perlin(vec2 q) {
   vec2 grads[4] = vec2[](vec2(1, 1), vec2(-1, 1), vec2(1, -1), vec2(-1, -1));
   vec2 p = q * 5.0;

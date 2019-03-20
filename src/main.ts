@@ -8,33 +8,24 @@ import Camera from './Camera';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 import Mesh from './geometry/Mesh';
-import LSystem from './LSystem';
+import City from './City';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
-// TODO: Update controls
 const controls = {
-  axiom: 'FF[+F][-F][+F]X',
-  expansionDepth: 4,
-  angle: 135.0,
   showTerrainMap: true,
-  simpleTerrain: false,
+  simpleTerrain: true,
   showPopulationDensity: true
 };
 
 let square: Square;
 let screenQuad: ScreenQuad;
 let densityMap: ScreenQuad;
-let cyl: Mesh;
-let bean: Mesh;
-let tree: LSystem;
+let city: City;
 let time: number = 0.0;
 
-let currAxiom : string = 'FF[+F][-F][+F]X';
-let currDepth : number = 4;
-let currAngle : number = 135.0;
 let currTerrain : boolean = true;
-let currSimple : boolean = false;
+let currSimple : boolean = true;
 let currDensity : boolean = true;
 
 function loadScene() {
@@ -47,16 +38,16 @@ function loadScene() {
   densityMap = new ScreenQuad();
   densityMap.create();
 
-  tree = new LSystem(controls.expansionDepth, controls.angle, 0);
-  let branches : mat4[] = tree.drawBranch();
-  let leaves : mat4[] = tree.drawLeaf();
+  city = new City(4);
+  let highways : mat4[] = city.drawHighways();
+  let roads : mat4[] = city.drawNeighborhoods();
 
   let bOffsetArr = [];
   let bRotArr = [];
   let bScaleArr = [];
   let bColorArr = [];
-  for (var i = 0; i < branches.length; ++i) {
-    let curr : mat4 = branches[i];
+  for (var i = 0; i < highways.length; ++i) {
+    let curr : mat4 = highways[i];
 
     let t : vec3 = vec3.create(); 
     mat4.getTranslation(t, curr);
@@ -89,8 +80,8 @@ function loadScene() {
   let sRotArr = [];
   let sScaleArr = [];
   let sColorArr = [];
-  for (let i = 0; i < leaves.length; ++i) {
-    let curr : mat4 = leaves[i];
+  for (let i = 0; i < roads.length; ++i) {
+    let curr : mat4 = roads[i];
 
     let t : vec3 = vec3.create(); 
     mat4.getTranslation(t, curr);
@@ -146,9 +137,6 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'axiom');
-  gui.add(controls, 'expansionDepth', 0, 5).step(1);
-  gui.add(controls, 'angle', 20.0, 150.0).step(0.5);
   gui.add(controls, 'showTerrainMap');
   gui.add(controls, 'simpleTerrain');
   gui.add(controls, 'showPopulationDensity');
@@ -198,11 +186,8 @@ function main() {
 
   // This function will be called every frame
   function tick() {
-    if (controls.axiom != currAxiom || controls.expansionDepth != currDepth || controls.angle != currAngle
-        || controls.showPopulationDensity != currDensity || controls.simpleTerrain != currSimple || controls.showTerrainMap != currTerrain) {
-      currAxiom = controls.axiom;
-      currDepth = controls.expansionDepth;
-      currAngle = controls.angle;
+    // Immediately update scene when the user interacts with the GUI
+    if (controls.showPopulationDensity != currDensity || controls.simpleTerrain != currSimple || controls.showTerrainMap != currTerrain) {
       currDensity = controls.showPopulationDensity;
       currSimple = controls.simpleTerrain;
       currTerrain = controls.showTerrainMap;
