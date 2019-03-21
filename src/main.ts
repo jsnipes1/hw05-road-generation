@@ -66,7 +66,6 @@ function loadScene() {
   let bRotArr = [];
   let bScaleArr = [];
   let bColorArr = [];
-  console.log(highways.length);
   for (var i = 0; i < highways.length; ++i) {
     let curr : mat4 = highways[i];
 
@@ -81,6 +80,7 @@ function loadScene() {
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
     let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 0, 1), r);
+    // console.log(thetaZ);
     bRotArr.push(thetaZ);
 
     let s : vec3 = vec3.create();

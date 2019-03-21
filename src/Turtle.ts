@@ -35,7 +35,8 @@ export default class Turtle {
 
     // Get a random number on [-1, 1]
     randomScreenPt() : number {
-        return 2.0 * Math.random() - 1.0;
+        let s : number = 5.0;
+        return s * Math.random() - 0.5 * s;
     }
 
     // Move in direction of greatest population density
@@ -49,7 +50,7 @@ export default class Turtle {
         let branchThreshold : number = 0.6;
         let mArr : mat4[] = [];
         for (let i = -1; i <= 1; i += 0.5) {
-            let tempOrient : number = this.orient + i * Math.PI / 6.0;
+            let tempOrient : number = this.orient + i * Math.PI / 2.0;
 
             let tempPos : vec2 = vec2.create();
             vec2.add(tempPos, vec2.clone(this.position), vec2.fromValues(this.segmentLength * Math.cos(tempOrient), this.segmentLength * Math.sin(tempOrient)));
