@@ -1,4 +1,4 @@
-import {mat4, vec4, mat3} from 'gl-matrix';
+import {mat4, vec4, vec3, mat3} from 'gl-matrix';
 import Drawable from './Drawable';
 import Camera from '../../Camera';
 import {gl} from '../../globals';
@@ -31,12 +31,17 @@ class OpenGLRenderer {
                                camera.up[0], camera.up[1], camera.up[2],
                                camera.forward[0], camera.forward[1], camera.forward[2]);
 
+    let scaleMatrix = mat4.create();
+    let c = 120.0;
+    let scalars = vec3.fromValues(c / this.canvas.width, c / this.canvas.height, 1.0);
+    mat4.scale(scaleMatrix, scaleMatrix, scalars);
+
 
     prog.setEyeRefUp(camera.controls.eye, camera.controls.center, camera.controls.up);
     mat4.identity(model);
     mat4.multiply(viewProj, camera.projectionMatrix, camera.viewMatrix);
     prog.setModelMatrix(model);
-    prog.setViewProjMatrix(viewProj);
+    prog.setViewProjMatrix(scaleMatrix);
     prog.setCameraAxes(axes);
 
     prog.setTerrainDisplay(simple);

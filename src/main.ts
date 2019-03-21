@@ -70,24 +70,23 @@ function loadScene() {
     let curr : mat4 = highways[i];
 
     let t : vec3 = vec3.create(); 
-    mat4.getTranslation(t, curr);
-    // vec3.scale(t, t, 1.0);
-  
-    bOffsetArr.push(t[0]);
-    bOffsetArr.push(t[1]);
-    bOffsetArr.push(t[2]);
-
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
     let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 0, 1), r);
-    // console.log(thetaZ);
+    mat4.getTranslation(t, curr);
+  
+    bOffsetArr.push(t[0]);
+    bOffsetArr.push(t[1]);
+    bOffsetArr.push(0.0);
+
+    console.log(thetaZ);
     bRotArr.push(thetaZ);
 
     let s : vec3 = vec3.create();
     mat4.getScaling(s, curr);
     bScaleArr.push(s[0]);
     bScaleArr.push(s[1]);
-    bScaleArr.push(s[2]);
+    bScaleArr.push(1.0);
 
     bColorArr.push(0.1);
     bColorArr.push(0.1);
@@ -139,8 +138,8 @@ function loadScene() {
   let sRots : Float32Array = new Float32Array(sRotArr);
   let sScales : Float32Array = new Float32Array(sScaleArr);
   let sColors : Float32Array = new Float32Array(sColorArr);
-  // roadGeom.setInstanceVBOs(sOffsets, sRots, sScales, sColors);
-  // roadGeom.setNumInstances(roads.length);
+  roadGeom.setInstanceVBOs(sOffsets, sRots, sScales, sColors);
+  roadGeom.setNumInstances(roads.length);
 }
 
 function main() {
@@ -251,7 +250,7 @@ function main() {
       renderer.render(camera, density, [densityMap], currSimple, currFract, currDSeed);
     }
 
-    renderer.render(camera, instancedShader, [highwayGeom], currSimple, currFract, currDSeed);
+    renderer.render(camera, instancedShader, [highwayGeom, roadGeom], currSimple, currFract, currDSeed);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

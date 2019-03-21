@@ -61,6 +61,6 @@ void main() {
     // out_Col = vec4(n.x, n.y, n.z, 1.0);
 
     if (u_Terrain == 1) {
-    out_Col = (out_Col.y < 0.57) ? (vec4(0.0, 0.0, 1.0, 1.0)) : (vec4(0.0, 1.0, 0.0, 1.0));
+        out_Col = (out_Col.y < 0.57) ? (vec4(0.0, 0.0, 1.0, 1.0)) : (vec4(0.0, 1.0, 0.0, 1.0));
     }
 }

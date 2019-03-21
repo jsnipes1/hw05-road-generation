@@ -1,19 +1,14 @@
-import {vec2, vec3, mat4} from 'gl-matrix';
+import {vec2, vec3, mat4, quat} from 'gl-matrix';
 import Turtle from './Turtle';
 
 export default class City {
     currState: Turtle;
-    drawRules: Map<number, any>;
     roads: Road[];
     intersections: Intersection[];
     nHwy : number;
 
     constructor(nHwy : number) {
-        this.currState = new Turtle(0);
-
-        this.drawRules = new Map();
-        this.drawRules.set(0, this.currState.branchingRoads.bind(this.currState));
-        this.drawRules.set(1, this.currState.rasterRoads.bind(this.currState));
+        this.currState = new Turtle();
 
         this.roads = [];
         this.intersections = [];
@@ -24,20 +19,23 @@ export default class City {
     drawHighways() : mat4[] {
         let transfs : mat4[] = [];
         let start : vec2 = this.currState.position;
-        this.intersections.push(new Intersection(vec2.clone(start)));
+        this.intersections.push(new Intersection(start));
 
         for (let i = 0; i < this.nHwy; ++i) {
-            this.currState = new Turtle(0);
+            this.currState = new Turtle();
             let branch : mat4[] = this.currState.branchingRoads();
             for (let j = 0; j < branch.length; ++j) {
                 transfs.push(branch[j]);
 
                 let transl : vec3 = vec3.create();
                 mat4.getTranslation(transl, branch[j]); 
-                let end : vec2 = vec2.fromValues(transl[0], transl[1]);
+                let r : quat = quat.create();
+                mat4.getRotation(r, branch[j]);
+                let t : number = quat.getAxisAngle(vec3.create(), r);
+                let end : vec2 = vec2.fromValues(transl[0] * Math.cos(t), transl[1] * Math.sin(t));
 
                 this.roads.push(new Road(start, end));
-                this.intersections.push(new Intersection(vec2.clone(end)));
+                this.intersections.push(new Intersection(end));
             }
         }
 
@@ -46,6 +44,16 @@ export default class City {
 
     drawNeighborhoods() : mat4[] {
         let transfs : mat4[] = [];
+
+        for (let i = 0; i < this.roads.length; ++i) {
+            let n : vec2 = this.roads[i].inPlaneNormal();
+            let theta = Math.atan2(n[1], n[0]);
+            this.currState = new Turtle(this.roads[i].start, theta);
+            let block : mat4[] = this.currState.rasterRoads();
+            for (let j = 0; j < block.length; ++j) {
+                transfs.push(block[j]);
+            }
+        }
 
         return transfs;
     }
@@ -62,14 +70,16 @@ class Road {
             this.start = vec2.fromValues(0, 0);
         }
         else {
-            this.start = start;
+            this.start = vec2.create();
+            vec2.copy(this.start, start);
         }
 
         if (end == undefined) {
             this.end = vec2.fromValues(0, 0);
         }
         else {
-            this.end = end;
+            this.end = vec2.create();
+            vec2.copy(this.end, end);
         }
 
         this.roadVec = vec2.create();
@@ -86,6 +96,7 @@ class Road {
         let roadVec3 : vec3 = vec3.fromValues(this.roadVec[0], this.roadVec[1], 0.0);
         let xProd : vec3 = vec3.create();
         vec3.cross(xProd, this.outOfScreen, roadVec3);
+        vec3.normalize(xProd, xProd);
         return vec2.fromValues(xProd[0], xProd[1]);
     }
 }
@@ -98,7 +109,8 @@ class Intersection {
             this.screenPos = vec2.fromValues(0, 0);
         }
         else {
-            this.screenPos = pos;
+            this.screenPos = vec2.create();
+            vec2.copy(this.screenPos, pos);
         }
     }
 }

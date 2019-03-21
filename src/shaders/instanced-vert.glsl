@@ -17,6 +17,14 @@ in vec3 vs_Scale;
 out vec4 fs_Col;
 out vec4 fs_Pos;
 
+vec4 rotateZ(vec4 p, float a) {
+    return vec4(cos(a) * p.x - sin(a) * p.y, sin(a) * p.x + cos(a) * p.y, p.z, p.w);
+}
+
+vec4 rotateX(vec4 p, float a) {
+    return vec4(p.x, cos(a) * p.y - sin(a) * p.z, sin(a) * p.y + cos(a) * p.z, p.w);
+}
+
 void main()
 {
     fs_Col = vs_Col;
@@ -24,13 +32,15 @@ void main()
 
     vec3 offset = vs_Translate;
     
-    mat3 sc = mat3(1.0);
+    mat4 sc = mat4(1.0);
     sc[0][0] = vs_Scale[0];
     sc[1][1] = vs_Scale[1];
 
-    offset = sc * (vs_Rotate * vs_Pos.xyz) + offset;
+    vec4 finalPos = sc * rotateX(vs_Pos, 3.14159 * 0.5);
+    finalPos = rotateZ(finalPos, vs_Rotate);
+    finalPos.xyz = finalPos.xyz + vs_Translate;
 
-    // vec3 billboardPos = offset + vs_Pos.x * u_CameraAxes[0] + vs_Pos.y * u_CameraAxes[1];
+    //offset = sc * (vs_Rotate * vs_Pos.xyz) + offset;
 
-    gl_Position = u_ViewProj * (vs_Pos + vec4(offset, 1.0));
+    gl_Position = u_ViewProj * finalPos;//(vs_Pos + vec4(offset, 1.0));
 }

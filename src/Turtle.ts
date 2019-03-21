@@ -3,7 +3,6 @@ import {vec2, vec3, mat4, quat} from 'gl-matrix';
 export default class Turtle {
     position: vec2;
     orient: number;
-    type: number;
     recDepth: number;
     stack: Turtle[];
     segmentLength: number = 1.0;
@@ -11,12 +10,13 @@ export default class Turtle {
 
     // Pass position and orientation as optional parameters so we can
     // appropriately save state when necessary
-    constructor(type: number, pos?: vec2, orient?: number) {
+    constructor(pos?: vec2, orient?: number) {
         if (pos == undefined) {
             this.position = vec2.fromValues(this.randomScreenPt(), this.randomScreenPt());
         }
         else {
-            this.position = pos;
+            this.position = vec2.create();
+            vec2.copy(this.position, pos);
         }
 
         if (orient == undefined) {
@@ -26,58 +26,54 @@ export default class Turtle {
             this.orient = orient;
         }
 
-        // Type of road network: 0 -> branch, 1 -> raster
-        this.type = type;
-
         this.recDepth = 0;
         this.stack = [];
     }
 
-    // Get a random number on [-1, 1]
+    // Get a random number on [-n, n]
     randomScreenPt() : number {
-        let s : number = 5.0;
+        let s : number = 10.0;
         return s * Math.random() - 0.5 * s;
     }
 
     // Move in direction of greatest population density
     branchingRoads() : mat4[] {
-        // Just in case something goes *very* wrong
-        if (this.type == 1) {
-            this.rasterRoads();
-        }
-
         // Each road will attempt to branch
-        let branchThreshold : number = 0.6;
+        let branchThreshold : number = 0.3;
         let mArr : mat4[] = [];
         for (let i = -1; i <= 1; i += 0.5) {
             let tempOrient : number = this.orient + i * Math.PI / 2.0;
 
             let tempPos : vec2 = vec2.create();
-            vec2.add(tempPos, vec2.clone(this.position), vec2.fromValues(this.segmentLength * Math.cos(tempOrient), this.segmentLength * Math.sin(tempOrient)));
+            vec2.add(tempPos, this.position, vec2.fromValues(this.segmentLength * Math.cos(tempOrient), this.segmentLength * Math.sin(tempOrient)));
             
             // Found a path to a higher density area -> branch
             let m : mat4 = mat4.create();
-            let q : quat = quat.create();
             if (this.getPopulationDensity(tempPos) > branchThreshold && !this.isWater(tempPos)) {
                 this.saveState();
                 this.position = tempPos;
                 this.orient = tempOrient;
 
-                quat.fromEuler(q, 0.0, 0.0, tempOrient);
-                mat4.fromRotationTranslation(m, q, vec3.fromValues(tempPos[0], tempPos[1], 0.0));
+                mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
+                mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
+                mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 1.0));
             }
             // Not high enough density -> Done with this turtle; pop stack
             else {
-                let t : vec3 = vec3.create();
                 if (this.stack.length > 0) {
                     this.restoreState();
-                    this.position = tempPos;
-                    this.orient = tempOrient;
-                    // this.branchingRoads();
+                    // this.position = tempPos;
+                    // this.orient = tempOrient;
                 }
-                let q : quat = quat.create();
-                quat.fromEuler(q, 0.0, 0.0, this.orient.valueOf());
-                mat4.fromRotationTranslation(m, q, vec3.fromValues(this.position[0].valueOf(), this.position[1].valueOf(), 0.0));
+                else {
+                    continue;
+                    // this.position = tempPos;
+                    // this.orient = tempOrient;
+                }
+
+                mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
+                mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
+                mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 1.0));
             }
             mArr.push(m);
         }
@@ -86,45 +82,63 @@ export default class Turtle {
     }
 
     // Draw raster style roads
-    rasterRoads() : mat4 {
-        // Again, just to be safe
-        if (this.type == 0) {
-            this.branchingRoads();
-        }
-
+    rasterRoads() : mat4[] {
         // Compare orient to the world orients and set to closest
-        let orientSign : number = Math.sign(this.orient);
-        let orientIdx : number = Math.floor(Math.abs(this.orient) * 4.0 / Math.PI);
-        this.orient = this.worldOrients[orientIdx] * (Math.PI / 180.0) * orientSign;
+        let mArr : mat4[] = [];
+        for (let i = 0; i < 5; ++i) {
+            let orientIdx : number = Math.floor(Math.abs(this.orient) * 4.0 / Math.PI);
 
-        // Move by set "parallel" distance, move to next orient in array, move by set "normal" distance
-        let distX : number = 0.5;
-        let distY : number = 0.2;
-        // Move to previous orient, move parallel distance, move to previous orient, move normal distance
-            // This moves in a snake-like pattern to draw a grid (where to do this?)
-        // Oriented in the X direction
-        if (orientIdx % 2 == 0) {
-            this.translateTurtle(distX, distY);
+            // Move by set "parallel" distance, move to next orient in array, move by set "normal" distance
+            let distX : number = 0.5;
+            let distY : number = 0.2;
+            // Move to previous orient, move parallel distance, move to previous orient, move normal distance
+                // This moves in a snake-like pattern to draw a grid
+            for (let j = 0; j < 5; ++j) {
+                let orientSign : number = Math.sign(this.orient);
+                this.orient = this.worldOrients[orientIdx] * (Math.PI / 180.0) * orientSign;
+                let m : mat4 = mat4.create();
+                // Oriented in the X direction
+                if (orientIdx % 2 == 0) {
+                    this.translateTurtle(distX, distY);
+                }
+                // Y direction
+                else {
+                    this.translateTurtle(distY, distX);
+                }
+                if (j % 2 == 0) {
+                    orientIdx = (orientIdx + 1) % 4;
+                }
+                else {
+                    orientIdx = (orientIdx - 1) % 4;
+                    if (orientIdx < 0) {
+                        orientIdx += 4;
+                    }
+                }
+                mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
+                mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
+                mat4.scale(m, m, vec3.fromValues(0.1, 0.8, 1.0));
+                mArr.push(m);
+            }
+            
+            // mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
+            // mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
+            // mat4.scale(m, m, vec3.fromValues(0.1, 0.8, 1.0));
+            // mArr.push(m);
         }
-        // Y direction
-        else {
-            this.translateTurtle(distY, distX);
-        }
-        let m : mat4 = mat4.create();
-        return m;
+
+        return mArr;
     }
 
     saveState() : void {
         this.recDepth++;
-        this.stack.push(new Turtle(this.type.valueOf(), vec2.clone(this.position), this.orient.valueOf()));
+        this.stack.push(new Turtle(vec2.clone(this.position), this.orient.valueOf()));
     }
 
     restoreState() : void {
         this.recDepth--;
         let temp : Turtle = this.stack.pop();
-        this.position = temp.position;
-        this.orient = temp.orient;
-        this.type = temp.type;
+        vec2.copy(this.position, temp.position);
+        this.orient = temp.orient.valueOf();
     }
 
     translateTurtle(xScale: number, yScale: number) : void {
@@ -189,6 +203,11 @@ export default class Turtle {
     
       let b : number = this.mix(infSW, infSE, this.fade(inCell[0]));
       let t : number = this.mix(infNW, infNE, this.fade(inCell[0]));
+      
+      if (this.isWater(q)) {
+          return -10;
+      }
+
       return this.mix(b, t, this.fade(inCell[1]));
     }
 
