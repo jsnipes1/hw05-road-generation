@@ -16,7 +16,10 @@ import City from './City';
 const controls = {
   showTerrainMap: true,
   simpleTerrain: true,
-  showPopulationDensity: true
+  showPopulationDensity: true,
+  terrainFraction: 3,
+  densitySeed: 7.2,
+  numHighways: 20
 };
 
 let square: Square;
@@ -30,6 +33,9 @@ let time: number = 0.0;
 let currTerrain : boolean = true;
 let currSimple : boolean = true;
 let currDensity : boolean = true;
+let currFract : number = 3;
+let currDSeed : number = 7.2;
+let currHwys : number = 20;
 
 function drawMaps() : void {
   screenQuad = new ScreenQuad();
@@ -45,7 +51,7 @@ function loadScene() {
 
   drawMaps();
 
-  city = new City();
+  city = new City(currHwys);
   let highways : mat4[] = city.drawHighways();
   let roads : mat4[] = city.drawNeighborhoods();
 
@@ -75,10 +81,7 @@ function loadScene() {
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
     let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 0, 1), r);
-    // bRotArr.push(0.0);
-    // bRotArr.push(0.0);
     bRotArr.push(thetaZ);
-    // bRotArr.push(r[3]);
 
     let s : vec3 = vec3.create();
     mat4.getScaling(s, curr);
@@ -109,10 +112,8 @@ function loadScene() {
 
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
-    sRotArr.push(r[0]);
-    // sRotArr.push(r[1]);
-    // sRotArr.push(r[2]);
-    // sRotArr.push(r[3]);
+    let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 0, 1), r);
+    sRotArr.push(thetaZ);
 
     let s : vec3 = vec3.create();
     mat4.getScaling(s, curr);
@@ -120,9 +121,9 @@ function loadScene() {
     sScaleArr.push(s[1]);
     sScaleArr.push(s[2]);
 
-    sColorArr.push(Math.random());
-    sColorArr.push(Math.random());
-    sColorArr.push(Math.random());
+    sColorArr.push(0.1);
+    sColorArr.push(0.1);
+    sColorArr.push(0.1);
     sColorArr.push(1.0);
   }
 
@@ -156,6 +157,9 @@ function main() {
   gui.add(controls, 'showTerrainMap');
   gui.add(controls, 'simpleTerrain');
   gui.add(controls, 'showPopulationDensity');
+  gui.add(controls, 'terrainFraction', 0, 10).step(0.1);
+  gui.add(controls, 'densitySeed', 1, 20).step(0.1);
+  gui.add(controls, 'numHighways', 0, 100);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -225,6 +229,13 @@ function main() {
       drawMaps();
     }
 
+    if (controls.numHighways != currHwys || controls.densitySeed != currDSeed || controls.terrainFraction != currFract) {
+      currHwys = controls.numHighways;
+      currDSeed = controls.densitySeed;
+      currFract = controls.terrainFraction;
+      loadScene();
+    }
+
     camera.update();
     stats.begin();
     instancedShader.setTime(time);
@@ -234,13 +245,13 @@ function main() {
     // Turn background shaders on and off as appropriate
     renderer.clear();
     if (currTerrain) {
-      renderer.render(camera, flat, [screenQuad], currSimple);
+      renderer.render(camera, flat, [screenQuad], currSimple, currFract, currDSeed);
     }
     if (currDensity) {
-      renderer.render(camera, density, [densityMap], currSimple);
+      renderer.render(camera, density, [densityMap], currSimple, currFract, currDSeed);
     }
 
-    renderer.render(camera, instancedShader, [highwayGeom], currSimple);
+    renderer.render(camera, instancedShader, [highwayGeom], currSimple, currFract, currDSeed);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

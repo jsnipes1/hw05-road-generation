@@ -5,6 +5,7 @@ uniform vec3 u_Eye, u_Ref, u_Up;
 uniform vec2 u_Dimensions;
 uniform float u_Time;
 uniform int u_Terrain;
+uniform int u_Detail;
 
 in vec2 fs_Pos;
 out vec4 out_Col;
@@ -40,7 +41,7 @@ float fbm(vec2 q) {
     float freq = 1.0;
     float amp = 1.0;
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < u_Detail; ++i) {
     freq *= freqScale;
     amp *= invScale;
     acc += noise(q * freq) * amp;

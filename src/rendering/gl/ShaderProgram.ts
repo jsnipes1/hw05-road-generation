@@ -39,6 +39,8 @@ class ShaderProgram {
   unifUp: WebGLUniformLocation;
   unifDimensions: WebGLUniformLocation;
   unifTerrain: WebGLUniformLocation;
+  unifDetail: WebGLUniformLocation;
+  unifDSeed: WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -68,6 +70,8 @@ class ShaderProgram {
     this.unifUp   = gl.getUniformLocation(this.prog, "u_Up");
 
     this.unifTerrain = gl.getUniformLocation(this.prog, "u_Terrain");
+    this.unifDetail = gl.getUniformLocation(this.prog, "u_Detail");
+    this.unifDSeed = gl.getUniformLocation(this.prog, "u_DSeed");
   }
 
   use() {
@@ -137,6 +141,20 @@ class ShaderProgram {
     if (this.unifTerrain !== -1) {
       let n : number = b ? 1 : 0;
       gl.uniform1i(this.unifTerrain, n);
+    }
+  }
+
+  setTerrainDetail(d: number) {
+    this.use();
+    if (this.unifDetail !== -1) {
+      gl.uniform1i(this.unifDetail, d);
+    }
+  }
+
+  setDensitySeed(s: number) {
+    this.use();
+    if (this.unifDSeed !== -1) {
+      gl.uniform1f(this.unifDSeed, s);
     }
   }
 

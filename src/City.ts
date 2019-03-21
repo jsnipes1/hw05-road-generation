@@ -6,8 +6,9 @@ export default class City {
     drawRules: Map<number, any>;
     roads: Road[];
     intersections: Intersection[];
+    nHwy : number;
 
-    constructor() {
+    constructor(nHwy : number) {
         this.currState = new Turtle(0);
 
         this.drawRules = new Map();
@@ -16,6 +17,8 @@ export default class City {
 
         this.roads = [];
         this.intersections = [];
+
+        this.nHwy = nHwy;
     }
 
     drawHighways() : mat4[] {
@@ -23,7 +26,7 @@ export default class City {
         let start : vec2 = this.currState.position;
         this.intersections.push(new Intersection(vec2.clone(start)));
 
-        for (let i = 0; i < 20; ++i) {
+        for (let i = 0; i < this.nHwy; ++i) {
             this.currState = new Turtle(0);
             let branch : mat4[] = this.currState.branchingRoads();
             for (let j = 0; j < branch.length; ++j) {
