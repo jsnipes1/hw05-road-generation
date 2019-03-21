@@ -6,7 +6,7 @@ export default class Turtle {
     type: number;
     recDepth: number;
     stack: Turtle[];
-    segmentLength: number = 0.005;
+    segmentLength: number = 1.0;
     worldOrients : number[] = [0, 90, 180, 270];
 
     // Pass position and orientation as optional parameters so we can
@@ -20,7 +20,7 @@ export default class Turtle {
         }
 
         if (orient == undefined) {
-            this.orient = 360.0 * this.randomScreenPt();
+            this.orient = 2.0 * Math.PI * this.randomScreenPt();
         }
         else {
             this.orient = orient;
@@ -49,7 +49,7 @@ export default class Turtle {
         let branchThreshold : number = 0.6;
         let mArr : mat4[] = [];
         for (let i = -1; i <= 1; i += 0.5) {
-            let tempOrient : number = this.orient + i * 30.0;
+            let tempOrient : number = this.orient + i * Math.PI / 6.0;
 
             let tempPos : vec2 = vec2.create();
             vec2.add(tempPos, vec2.clone(this.position), vec2.fromValues(this.segmentLength * Math.cos(tempOrient), this.segmentLength * Math.sin(tempOrient)));
@@ -67,8 +67,12 @@ export default class Turtle {
             }
             // Not high enough density -> Done with this turtle; pop stack
             else {
+                let t : vec3 = vec3.create();
                 if (this.stack.length > 0) {
                     this.restoreState();
+                    this.position = tempPos;
+                    this.orient = tempOrient;
+                    // this.branchingRoads();
                 }
                 let q : quat = quat.create();
                 quat.fromEuler(q, 0.0, 0.0, this.orient.valueOf());
@@ -89,8 +93,8 @@ export default class Turtle {
 
         // Compare orient to the world orients and set to closest
         let orientSign : number = Math.sign(this.orient);
-        let orientIdx : number = Math.floor(Math.abs(this.orient) / 45.0);
-        this.orient = this.worldOrients[orientIdx] * orientSign;
+        let orientIdx : number = Math.floor(Math.abs(this.orient) * 4.0 / Math.PI);
+        this.orient = this.worldOrients[orientIdx] * (Math.PI / 180.0) * orientSign;
 
         // Move by set "parallel" distance, move to next orient in array, move by set "normal" distance
         let distX : number = 0.5;

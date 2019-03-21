@@ -31,15 +31,19 @@ let currTerrain : boolean = true;
 let currSimple : boolean = true;
 let currDensity : boolean = true;
 
-function loadScene() {
-  square = new Square();
-  square.create();
-
+function drawMaps() : void {
   screenQuad = new ScreenQuad();
   screenQuad.create();
 
   densityMap = new ScreenQuad();
   densityMap.create();
+}
+
+function loadScene() {
+  square = new Square();
+  square.create();
+
+  drawMaps();
 
   city = new City();
   let highways : mat4[] = city.drawHighways();
@@ -56,13 +60,13 @@ function loadScene() {
   let bRotArr = [];
   let bScaleArr = [];
   let bColorArr = [];
+  console.log(highways.length);
   for (var i = 0; i < highways.length; ++i) {
     let curr : mat4 = highways[i];
 
     let t : vec3 = vec3.create(); 
     mat4.getTranslation(t, curr);
-    t[2] = 0.0;
-    vec3.scale(t, t, 0.5);
+    // vec3.scale(t, t, 1.0);
   
     bOffsetArr.push(t[0]);
     bOffsetArr.push(t[1]);
@@ -70,10 +74,11 @@ function loadScene() {
 
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
-    bRotArr.push(r[0]);
-    bRotArr.push(r[1]);
-    bRotArr.push(r[2]);
-    bRotArr.push(r[3]);
+    let thetaZ = quat.getAxisAngle(vec3.fromValues(0, 0, 1), r);
+    // bRotArr.push(0.0);
+    // bRotArr.push(0.0);
+    bRotArr.push(thetaZ);
+    // bRotArr.push(r[3]);
 
     let s : vec3 = vec3.create();
     mat4.getScaling(s, curr);
@@ -105,9 +110,9 @@ function loadScene() {
     let r : quat = quat.create();
     mat4.getRotation(r, curr);
     sRotArr.push(r[0]);
-    sRotArr.push(r[1]);
-    sRotArr.push(r[2]);
-    sRotArr.push(r[3]);
+    // sRotArr.push(r[1]);
+    // sRotArr.push(r[2]);
+    // sRotArr.push(r[3]);
 
     let s : vec3 = vec3.create();
     mat4.getScaling(s, curr);
@@ -214,7 +219,10 @@ function main() {
         gl.enable(gl.DEPTH_TEST);
       }
 
-      loadScene();
+      // gl.disable(gl.BLEND);
+      // gl.enable(gl.DEPTH_TEST);
+
+      drawMaps();
     }
 
     camera.update();

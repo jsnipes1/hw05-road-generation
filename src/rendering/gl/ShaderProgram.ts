@@ -176,7 +176,7 @@ class ShaderProgram {
     // TODO: Set up attribute data for additional instanced rendering data as needed
     if (this.attrRotate != -1 && d.bindRot()) {
       gl.enableVertexAttribArray(this.attrRotate);
-      gl.vertexAttribPointer(this.attrRotate, 4, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(this.attrRotate, 1, gl.FLOAT, false, 0, 0);
       gl.vertexAttribDivisor(this.attrRotate, 1);
     }
 
