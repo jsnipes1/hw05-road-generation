@@ -41,7 +41,7 @@ float fbm(vec2 q) {
     float freq = 1.0;
     float amp = 1.0;
 
-    for (int i = 0; i < u_Detail; ++i) {
+    for (int i = 0; i < u_Detail + 3; ++i) {
     freq *= freqScale;
     amp *= invScale;
     acc += noise(q * freq) * amp;

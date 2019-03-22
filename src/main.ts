@@ -17,7 +17,7 @@ const controls = {
   showTerrainMap: true,
   simpleTerrain: true,
   showPopulationDensity: true,
-  terrainFraction: 3,
+  terrainFraction: 0,
   densitySeed: 7.2,
   numHighways: 20
 };
@@ -33,7 +33,7 @@ let time: number = 0.0;
 let currTerrain : boolean = true;
 let currSimple : boolean = true;
 let currDensity : boolean = true;
-let currFract : number = 3;
+let currFract : number = 0;
 let currDSeed : number = 7.2;
 let currHwys : number = 20;
 

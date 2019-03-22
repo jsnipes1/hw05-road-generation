@@ -93,11 +93,24 @@ export default class Turtle {
         for (let i = 0; i < 5; ++i) {
             this.saveState();
             let m : mat4 = mat4.create();
+
+            // Neighborhood roads can't cross water
+            if (this.isWater(this.position)) {
+                this.restoreState();
+                continue;
+            }
+
             if (i % 2 == 0) {
                 this.translateTurtle(distX, distY, tempOrient);
             }
             else {
                 this.translateTurtle(distY, distX, tempOrient);
+            }
+
+            // Check for water again
+            if (this.isWater(this.position)) {
+                this.restoreState();
+                continue;
             }
 
             mat4.rotate(m, m, tempOrient, vec3.fromValues(0, 0, 1));
