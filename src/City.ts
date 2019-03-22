@@ -48,8 +48,8 @@ export default class City {
         for (let i = 0; i < this.roads.length; ++i) {
             let n : vec2 = this.roads[i].inPlaneNormal();
             let theta = Math.atan2(n[1], n[0]);
-            this.currState = new Turtle(this.roads[i].start, theta);
-            let block : mat4[] = this.currState.rasterRoads();
+            let blockDrawer : Turtle = new Turtle(this.roads[i].start, theta);
+            let block : mat4[] = blockDrawer.rasterRoads();
             for (let j = 0; j < block.length; ++j) {
                 transfs.push(block[j]);
             }

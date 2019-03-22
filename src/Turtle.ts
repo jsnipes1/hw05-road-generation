@@ -71,8 +71,8 @@ export default class Turtle {
                     // this.orient = tempOrient;
                 }
 
-                mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
                 mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
+                mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
                 mat4.scale(m, m, vec3.fromValues(0.2, 1.0, 1.0));
             }
             mArr.push(m);
@@ -83,47 +83,30 @@ export default class Turtle {
 
     // Draw raster style roads
     rasterRoads() : mat4[] {
-        // Compare orient to the world orients and set to closest
         let mArr : mat4[] = [];
-        for (let i = 0; i < 5; ++i) {
-            let orientIdx : number = Math.floor(Math.abs(this.orient) * 4.0 / Math.PI);
+        let tempOrient : number = this.orient.valueOf();
 
-            // Move by set "parallel" distance, move to next orient in array, move by set "normal" distance
-            let distX : number = 0.5;
-            let distY : number = 0.2;
-            // Move to previous orient, move parallel distance, move to previous orient, move normal distance
-                // This moves in a snake-like pattern to draw a grid
-            for (let j = 0; j < 5; ++j) {
-                let orientSign : number = Math.sign(this.orient);
-                this.orient = this.worldOrients[orientIdx] * (Math.PI / 180.0) * orientSign;
-                let m : mat4 = mat4.create();
-                // Oriented in the X direction
-                if (orientIdx % 2 == 0) {
-                    this.translateTurtle(distX, distY);
-                }
-                // Y direction
-                else {
-                    this.translateTurtle(distY, distX);
-                }
-                if (j % 2 == 0) {
-                    orientIdx = (orientIdx + 1) % 4;
-                }
-                else {
-                    orientIdx = (orientIdx - 1) % 4;
-                    if (orientIdx < 0) {
-                        orientIdx += 4;
-                    }
-                }
-                mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
-                mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
-                mat4.scale(m, m, vec3.fromValues(0.1, 0.8, 1.0));
-                mArr.push(m);
+        // Move by set "parallel" distance, rotate 90 degrees, move by set "normal" distance...
+        let distX : number = 300.0;
+        let distY : number = 200.0;
+
+        for (let i = 0; i < 5; ++i) {
+            this.saveState();
+            let m : mat4 = mat4.create();
+            if (i % 2 == 0) {
+                this.translateTurtle(distX, distY, tempOrient);
             }
-            
-            // mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
-            // mat4.rotate(m, m, this.orient, vec3.fromValues(0, 0, 1));
-            // mat4.scale(m, m, vec3.fromValues(0.1, 0.8, 1.0));
-            // mArr.push(m);
+            else {
+                this.translateTurtle(distY, distX, tempOrient);
+            }
+
+            mat4.rotate(m, m, tempOrient, vec3.fromValues(0, 0, 1));
+            mat4.translate(m, m, vec3.fromValues(this.position[0], this.position[1], 0.0));
+            mat4.scale(m, m, vec3.fromValues(0.02, 0.8, 1.0));
+            mArr.push(m);
+
+            tempOrient -= Math.PI * 0.5;
+            this.restoreState();
         }
 
         return mArr;
@@ -141,9 +124,9 @@ export default class Turtle {
         this.orient = temp.orient.valueOf();
     }
 
-    translateTurtle(xScale: number, yScale: number) : void {
-        this.position[0] += xScale * Math.cos(this.orient);
-        this.position[1] += yScale * Math.sin(this.orient);
+    translateTurtle(xScale: number, yScale: number, angle: number) : void {
+        this.position[0] += xScale * Math.cos(angle);
+        this.position[1] += yScale * Math.sin(angle);
     }
 
     // Adapted from density-frag shader to access population density info on CPU
