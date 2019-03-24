@@ -1,56 +1,42 @@
-# Homework 5: Road Generation
+# Homework 5: Bless the Broken Road
+Name: Jake Snipes
 
-For this assignment, you will generate a network of roads to form the basis of a city using a modified version of L-systems. As in homework 4, you will be using instanced rendering to draw your road networks.
+PennKey: jsnipes
 
-## Base Code
-We have provided the same code that came with homework 4, but you will likely want to use most of your code from that assignment. Feel free to copy over as much of your homework 4 implementation as you want. We have also provided [Procedural Modeling of Cities](proceduralCityGeneration.pdf), a brief technical paper describing techniques for generating road networks. Refer to this as you implement the sections below.
+## Images
+<img src="">
+All of the road segments are having a problem with connectivity, but the highways generally follow the population density map.
 
-## Assignment Requirements
-- __(10 points)__ Use whatever noise functions suit you to generate 2D map data of the following information, and set up GUI toggles to render each map on a 2D screen quadrangle. The user should have the option to view both overlaid on each other.
-  - Terrain elevation, setting anything below a certain height to water. Higher elevation should be lighter in color. Include an option to display a simple land versus water view.
-  - Population density. Denser population should be lighter in color.
-- __(20 points)__ Create a set of classes to represent a pseudo L-system; you will still have a Turtle to track your drawing state, but you will expand your road network based on the Turtle's current environment as it moves and draws. You won't be tracking a grammar as a set of characters, but you will keep a set of rules to determine how to advance your Turtle.
-  - Your Turtle will begin from a random point in the bounds of your screen.
-  - Depending on the type of road network being generated (see next section) your Turtle will move forward and draw some sort of road in its wake.
-  - Each time the Turtle completes a road segment, it will evaluate whether it should branch to create more roads in different directions (same idea as the push and pop of Turtle state). This is where your expansion rules come in; the Turtle must decide how it will branch (if at all).
-  - Store your roads as sets of edges and intersections so that you can more easily make roads connect to one another as described in section 3.3.1 of Procedural Modeling of Cities
-- __(20 points)__ Create distinct rule sets for drawing roads that obey the following layouts (refer to figure 5 in [Procedural Modeling of Cities](proceduralCityGeneration.pdf) for illustrations):
-  - Basic road branching: The main roads follow population density as a metric for directional bias
-  - Checkered road networking: The roads are aligned with some global directional vector and have a maximum block width and length. Intersections are all roughly 90 degrees.
-- __(30 points)__ Using the components you created in the previous sections, generate the 2D street layout of a city with the following features:
-  - An overarching sparse layout of highway roads that are thicker than other roads
-  - Within the highway outline, denser clusters of smaller roads with less visual line thickness than the highways
-  - Inclusion of both road branching methods
-  - Only highways are allowed to cross water
-  - Roads are self-sensitive, as described in section 3.3.1 of Procedural Modeling of Cities
+<img src="">
+The raster neighborhoods aren't being drawn in a grid-like fashion.
 
-- __(10 points)__ Using dat.GUI, make at least three aspects of your program interactive, such as:
-  - Terrain shape
-  - Population density
-  - Highway density
-  - Random seed used for the RNG basis of road branching
+## Techniques
+### Terrain Map
+The terrain is generated using 2D multi-octave FBM and colored based on its value such that color is linearly interpolated from blue to green. If simpleTerrain is toggled, one can view the separation between land and water as determined by a set threshold; in my opinion, this is the most useful view as it clearly separates land from water in the 2D view.
 
-- __(10 points)__ Following the specifications listed
-[here](https://github.com/pjcozzi/Articles/blob/master/CIS565/GitHubRepo/README.md),
-create your own README.md, renaming the file you are presently reading to
-INSTRUCTIONS.md. Don't worry about discussing runtime optimization for this
-project. Make sure your README contains the following information:
-    - Your name and PennKey
-    - Citation of any external resources you found helpful when implementing this
-    assignment.
-    - A link to your live github.io demo (refer to the pinned Piazza post on
-      how to make a live demo through github.io)
-    - An explanation of the techniques you used to generate your L-System features.
-    Please be as detailed as you can; not only will this help you explain your work
-    to recruiters, but it helps us understand your project when we grade it!
+### Population Density Map
+The population density map is generated using 2D Perlin noise such that lighter colors represent areas of higher population density.
 
-## Expected visual output
-The results of your road generation need only be simple 2D images, like the ones in Procedural Modeling of Cities. You may make 3D terrain with overlaid roads if you want, but for this assignment it's not necessary.
+### Highways
+The bold roads are highways that follow the population density map and branch as appropriate. When a highway is being drawn, it samples the population density at a few points in front of it and branches if the density value is above a set threshold. The highways are drawn using a square mesh that is transformed as appropriate and rendered using instanced rendering.
 
-![](nyc.png)
+### Neighborhoods
+The thinner roads are neighborhoods that are drawn using a rasterization technique. They are drawn in empty blocks of land as the highway network is traversed and the areas of terrain perpendicular to them are checked. Like the highways, these are drawn using a transformed square mesh and instanced rendering.
 
-## Extra Credit (Up to 20 points)
-- Implement additional road layouts as described in Procedural Modeling of Cities
-  - Radial road networking: The main roads follow radial tracks around some predefined centerpoint
-  - Elevation road networking: Roads follow paths of least elevation change
-- Add any polish features you'd like to make your visual output more interesting
+### Connections
+The highways are stored as a set of edges and intersections that is traversed after all of them are drawn and detects if there are any small adjustments that can be made to connect roads that are close to one another, trim small dead-ends, and appropriately align intersections. This technique is based on Section 3.3.1 of "Procedural Modeling of Cities."
+
+## GUI Inputs
+The modifiable GUI inputs are as follows:
+- ShowTerrainMap: Toggle whether or not the noise map that governs the terrain is displayed
+- SimpleTerrain: Toggle whether terrain should be colored based on its exact value (off) or whether it is land/water (on)
+- ShowPopulationDensity: Toggle whether or not the noise map that governs population density is displayed
+- TerrainFraction: Adjust how much of the region is land (a higher value implies more land)
+- DensitySeed: Adjust how the random aspect of the population density noise map is generated (i.e. - the hash function)
+- NumHighways: Adjust how many highway "roots" will be generated
+
+## Live Demo
+https://jacobsnipes.com/hw05-road-generation
+
+## Resources Used
+All resources are cited as comments in the code where they were used.
