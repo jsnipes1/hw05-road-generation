@@ -55,7 +55,7 @@ function loadScene() {
   let highways : mat4[] = city.drawHighways();
   let roads : mat4[] = city.drawNeighborhoods();
 
-  let obj : string = readTextFile('https://github.com/jsnipes1/hw05-road-generation/blob/master/resources/road.obj');
+  let obj : string = readTextFile('https://raw.githubusercontent.com/jsnipes1/hw05-road-generation/master/resources/road.obj');
   highwayGeom = new Mesh(obj, vec3.fromValues(0.0, 0.0, 0.0));
   highwayGeom.create();
 
