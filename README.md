@@ -4,10 +4,10 @@ Name: Jake Snipes
 PennKey: jsnipes
 
 ## Images
-<img src="">
+<img src="img/map1.PNG">
 All of the road segments are having a problem with connectivity, but the highways generally follow the population density map.
 
-<img src="">
+<img src="img/map2.PNG">
 The raster neighborhoods aren't being drawn in a grid-like fashion.
 
 ## Techniques
