@@ -4,10 +4,10 @@ Name: Jake Snipes
 PennKey: jsnipes
 
 ## Images
-<img src="">
+<img src="img/map1.PNG">
 All of the road segments are having a problem with connectivity, but the highways generally follow the population density map.
 
-<img src="">
+<img src="img/map2.PNG">
 The raster neighborhoods aren't being drawn in a grid-like fashion.
 
 ## Techniques
@@ -21,10 +21,10 @@ The population density map is generated using 2D Perlin noise such that lighter 
 The bold roads are highways that follow the population density map and branch as appropriate. When a highway is being drawn, it samples the population density at a few points in front of it and branches if the density value is above a set threshold. The highways are drawn using a square mesh that is transformed as appropriate and rendered using instanced rendering.
 
 ### Neighborhoods
-The thinner roads are neighborhoods that are drawn using a rasterization technique. They are drawn in empty blocks of land as the highway network is traversed and the areas of terrain perpendicular to them are checked. Like the highways, these are drawn using a transformed square mesh and instanced rendering.
+The thinner roads are neighborhoods that are meant to be drawn using a rasterization technique. They are drawn in empty blocks of land as the highway network is traversed and the areas of terrain perpendicular to them are checked. Like the highways, these are drawn using a transformed square mesh and instanced rendering. I had trouble getting the geometry to orient itself correctly and could not figure out the problem.
 
 ### Connections
-The highways are stored as a set of edges and intersections that is traversed after all of them are drawn and detects if there are any small adjustments that can be made to connect roads that are close to one another, trim small dead-ends, and appropriately align intersections. This technique is based on Section 3.3.1 of "Procedural Modeling of Cities."
+The highways are stored as a set of edges and intersections that is meant to be traversed after all of them are drawn and detects if there are any small adjustments that can be made to connect roads that are close to one another, trim small dead-ends, and appropriately align intersections. This technique is based on Section 3.3.1 of "Procedural Modeling of Cities." However, I was unable to implement this technique, as I could not get the roads to connect properly.
 
 ## GUI Inputs
 The modifiable GUI inputs are as follows:
